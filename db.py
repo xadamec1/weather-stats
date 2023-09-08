@@ -68,6 +68,7 @@ def initialize_db():
     # Insert data
     data1 = ("www.example-weather.com/today", "35.5", datetime.date.today())
     data2 = ("www.basic-weather.com/today", "34.5", datetime.date.today())
+
     db.insert_weather( data1)
     db.insert_weather( data2)
 
