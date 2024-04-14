@@ -3,6 +3,7 @@ import datetime
 import os
 
 import sqlite3
+from dataclasses import dataclass
 
 
 class Database:
@@ -25,7 +26,17 @@ class Database:
             insert_sql = f"INSERT INTO weather (url, temperature, weather_date) VALUES ({placeholders})"
             self.cursor.execute(insert_sql, data)
             self.conn.commit()
-            print("Data inserted successfully.")
+            print("Weather inserted successfully.")
+        except sqlite3.Error as e:
+            print(f"Error inserting data: {e}")
+
+    def insert_place(self, data):
+        try:
+            placeholders = ', '.join(['?'] * len(data))
+            insert_sql = f"INSERT INTO place (name, latitude, longitude, country) VALUES ({placeholders})"
+            self.cursor.execute(insert_sql, data)
+            self.conn.commit()
+            print("Place inserted successfully.")
         except sqlite3.Error as e:
             print(f"Error inserting data: {e}")
 
@@ -46,16 +57,16 @@ class Database:
         print("Database connection closed.")
 
 
+@dataclass
 class PlaceEntity:
-    def __init__(self, name, country, gps_latitude=0.0, gps_longitude=0.0):
-        self.name = name
-        self.gps_latitude = gps_latitude
-        self.gps_longitude = gps_longitude
-        self.country = country
+    name: str
+    gps_latitude: float
+    gps_longitude: float
+    country: str
 
 
 def initialize_db():
-    os.remove("weather.db")
+    os.remove("../weather.db")
     db = Database("weather.db")
 
     # Create a table
@@ -64,16 +75,17 @@ def initialize_db():
     db.create_table(table_name, weather_columns)
 
     place_columns = ["id INTEGER PRIMARY KEY, name TEXT, latitude FLOAT, longitude FLOAT, country TEXT"]
-    db.create_table("places", place_columns)
+    db.create_table("place", place_columns)
     # Insert data
     data1 = ("www.example-weather.com/today", "35.5", datetime.date.today())
     data2 = ("www.basic-weather.com/today", "34.5", datetime.date.today())
 
-    db.insert_weather( data1)
-    db.insert_weather( data2)
-
+    db.insert_weather(data1)
+    db.insert_weather(data2)
+    place = ("Prague", 1.5, 0.2, 'Czech Republic')
+    db.insert_place(place)
     # Query data
-    result = db.query_data(table_name)
+    result = db.query_data("place")
     for row in result:
         print(row)
 
